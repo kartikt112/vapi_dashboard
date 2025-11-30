@@ -9,8 +9,6 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    provider: "postgresql",
-    url: env("POSTGRES_PRISMA_URL"),
-    directUrl: env("POSTGRES_URL_NON_POOLING"),
+    url: env("DATABASE_URL"),
   },
 });
