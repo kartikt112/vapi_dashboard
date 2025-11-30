@@ -1,0 +1,38 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Call {
+  id                   String   @id
+  orgId                String
+  phoneNumberId        String
+  type                 String   // inboundPhoneCall, outboundPhoneCall, webCall
+  status               String
+  endedReason          String?
+  transcript           String?
+  recordingUrl         String?
+  stereoRecordingUrl   String?
+  summary              String?
+  createdAt            DateTime
+  updatedAt            DateTime
+  startedAt            DateTime?
+  endedAt              DateTime?
+  cost                 Float?
+  duration             Float?   // in seconds
+  customerNumber       String?
+  customerName         String?
+  metadata             String?  // JSON string
+  analysis             String?  // JSON string
+  costBreakdown        String?  // JSON string
+  
+  @@index([createdAt])
+  @@index([status])
+}
