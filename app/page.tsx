@@ -40,11 +40,23 @@ async function syncData() {
     ? `https://${process.env.VERCEL_URL}`
     : 'http://localhost:3000';
 
-  const response = await fetch(`${baseUrl}/api/sync`, {
-    method: 'POST',
-    cache: 'no-store',
-  });
-  return response.json();
+  try {
+    const response = await fetch(`${baseUrl}/api/sync`, {
+      method: 'POST',
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error('Sync failed:', text);
+      throw new Error(`Sync failed: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Sync error:', error);
+    return { error: error instanceof Error ? error.message : 'Unknown error' };
+  }
 }
 
 export default async function DashboardPage() {
