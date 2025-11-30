@@ -14,7 +14,7 @@ async function getCalls(): Promise<Call[]> {
             },
         });
 
-        return calls.map((row) => ({
+        return calls.map((row: any) => ({
             ...row,
             createdAt: row.createdAt.toISOString(),
             updatedAt: row.updatedAt.toISOString(),
