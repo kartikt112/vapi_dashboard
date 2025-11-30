@@ -6,24 +6,26 @@ import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon, Download, RefreshCw } from "lucide-react";
 import db from "@/lib/db";
 
-function getCalls(): Call[] {
+async function getCalls(): Promise<Call[]> {
   try {
-    const stmt = db.prepare(`
-      SELECT * FROM calls 
-      ORDER BY createdAt DESC
-    `);
-    const rows = stmt.all();
+    const calls = await db.call.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
 
-    return rows.map((row: any) => ({
+    return calls.map((row: any) => ({
       ...row,
+      createdAt: row.createdAt.toISOString(),
+      updatedAt: row.updatedAt.toISOString(),
       customer: row.customerNumber ? {
         number: row.customerNumber,
-        name: row.customerName,
+        name: row.customerName || undefined,
       } : undefined,
       metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
       analysis: row.analysis ? JSON.parse(row.analysis) : undefined,
       costBreakdown: row.costBreakdown ? JSON.parse(row.costBreakdown) : undefined,
-    })) as Call[];
+    })) as unknown as Call[];
   } catch (e) {
     console.error(e);
     return [];
@@ -39,8 +41,8 @@ async function syncData() {
   return response.json();
 }
 
-export default function DashboardPage() {
-  const calls = getCalls();
+export default async function DashboardPage() {
+  const calls = await getCalls();
   const stats = calculateStats(calls);
 
   return (
