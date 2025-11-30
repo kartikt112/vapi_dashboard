@@ -22,23 +22,9 @@ export async function POST() {
 
         const calls = await response.json();
 
-        // Prepare insert/update statement
-        const stmt = db.prepare(`
-      INSERT OR REPLACE INTO calls (
-        id, orgId, phoneNumberId, type, status, endedReason, transcript,
-        recordingUrl, stereoRecordingUrl, summary, createdAt, updatedAt,
-        startedAt, endedAt, cost, duration, customerNumber, customerName,
-        metadata, analysis, costBreakdown
-      ) VALUES (
-        @id, @orgId, @phoneNumberId, @type, @status, @endedReason, @transcript,
-        @recordingUrl, @stereoRecordingUrl, @summary, @createdAt, @updatedAt,
-        @startedAt, @endedAt, @cost, @duration, @customerNumber, @customerName,
-        @metadata, @analysis, @costBreakdown
-      )
-    `);
-
-        const insertMany = db.transaction((callsData: any[]) => {
-            for (const call of callsData) {
+        // Process calls in transaction
+        await db.$transaction(
+            calls.map((call: any) => {
                 // Calculate duration in seconds from startedAt and endedAt
                 let duration = 0;
                 if (call.startedAt && call.endedAt) {
@@ -47,34 +33,55 @@ export async function POST() {
                     duration = (end - start) / 1000; // Convert milliseconds to seconds
                 }
 
-                stmt.run({
-                    id: call.id,
-                    orgId: call.orgId,
-                    phoneNumberId: call.phoneNumberId || null,
-                    type: call.type,
-                    status: call.status,
-                    endedReason: call.endedReason || null,
-                    transcript: call.transcript || null,
-                    recordingUrl: call.recordingUrl || null,
-                    stereoRecordingUrl: call.stereoRecordingUrl || null,
-                    summary: call.summary || null,
-                    createdAt: call.createdAt,
-                    updatedAt: call.updatedAt,
-                    startedAt: call.startedAt || null,
-                    endedAt: call.endedAt || null,
-                    cost: call.cost || 0,
-                    duration: duration,
-                    customerNumber: call.customer?.number || null,
-                    customerName: call.customer?.name || null,
-                    metadata: JSON.stringify(call.metadata || {}),
-                    analysis: JSON.stringify(call.analysis || {}),
-                    costBreakdown: JSON.stringify(call.costBreakdown || {}),
+                return db.call.upsert({
+                    where: { id: call.id },
+                    update: {
+                        orgId: call.orgId,
+                        phoneNumberId: call.phoneNumberId || '',
+                        type: call.type,
+                        status: call.status,
+                        endedReason: call.endedReason,
+                        transcript: call.transcript,
+                        recordingUrl: call.recordingUrl,
+                        stereoRecordingUrl: call.stereoRecordingUrl,
+                        summary: call.summary,
+                        updatedAt: new Date(call.updatedAt),
+                        startedAt: call.startedAt ? new Date(call.startedAt) : null,
+                        endedAt: call.endedAt ? new Date(call.endedAt) : null,
+                        cost: call.cost || 0,
+                        duration: duration,
+                        customerNumber: call.customer?.number,
+                        customerName: call.customer?.name,
+                        metadata: call.metadata ? JSON.stringify(call.metadata) : null,
+                        analysis: call.analysis ? JSON.stringify(call.analysis) : null,
+                        costBreakdown: call.costBreakdown ? JSON.stringify(call.costBreakdown) : null,
+                    },
+                    create: {
+                        id: call.id,
+                        orgId: call.orgId,
+                        phoneNumberId: call.phoneNumberId || '',
+                        type: call.type,
+                        status: call.status,
+                        endedReason: call.endedReason,
+                        transcript: call.transcript,
+                        recordingUrl: call.recordingUrl,
+                        stereoRecordingUrl: call.stereoRecordingUrl,
+                        summary: call.summary,
+                        createdAt: new Date(call.createdAt),
+                        updatedAt: new Date(call.updatedAt),
+                        startedAt: call.startedAt ? new Date(call.startedAt) : null,
+                        endedAt: call.endedAt ? new Date(call.endedAt) : null,
+                        cost: call.cost || 0,
+                        duration: duration,
+                        customerNumber: call.customer?.number,
+                        customerName: call.customer?.name,
+                        metadata: call.metadata ? JSON.stringify(call.metadata) : null,
+                        analysis: call.analysis ? JSON.stringify(call.analysis) : null,
+                        costBreakdown: call.costBreakdown ? JSON.stringify(call.costBreakdown) : null,
+                    },
                 });
-            }
-        });
-
-
-        insertMany(calls);
+            })
+        );
 
         return NextResponse.json({
             success: true,

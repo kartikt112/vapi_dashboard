@@ -6,24 +6,26 @@ import { format } from "date-fns";
 import db from "@/lib/db";
 import { Call } from "@/lib/types";
 
-function getCalls(): Call[] {
+async function getCalls(): Promise<Call[]> {
     try {
-        const stmt = db.prepare(`
-      SELECT * FROM calls 
-      ORDER BY createdAt DESC
-    `);
-        const rows = stmt.all();
+        const calls = await db.call.findMany({
+            orderBy: {
+                createdAt: 'desc',
+            },
+        });
 
-        return rows.map((row: any) => ({
+        return calls.map((row) => ({
             ...row,
+            createdAt: row.createdAt.toISOString(),
+            updatedAt: row.updatedAt.toISOString(),
             customer: row.customerNumber ? {
                 number: row.customerNumber,
-                name: row.customerName,
+                name: row.customerName || undefined,
             } : undefined,
             metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
             analysis: row.analysis ? JSON.parse(row.analysis) : undefined,
             costBreakdown: row.costBreakdown ? JSON.parse(row.costBreakdown) : undefined,
-        })) as Call[];
+        })) as unknown as Call[];
     } catch (e) {
         console.error(e);
         return [];
@@ -36,8 +38,8 @@ function CallTypeIcon({ type }: { type: string }) {
     return <Globe className="h-5 w-5 text-purple-600" />;
 }
 
-export default function CallLogsPage() {
-    const calls = getCalls();
+export default async function CallLogsPage() {
+    const calls = await getCalls();
 
     return (
         <div className="p-8 space-y-6">
