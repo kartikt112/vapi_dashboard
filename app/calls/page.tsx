@@ -6,6 +6,8 @@ import { format } from "date-fns";
 import db from "@/lib/db";
 import { Call } from "@/lib/types";
 
+export const dynamic = 'force-dynamic';
+
 async function getCalls(): Promise<Call[]> {
     try {
         const calls = await db.call.findMany({

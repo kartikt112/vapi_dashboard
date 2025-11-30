@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon, Download, RefreshCw } from "lucide-react";
 import db from "@/lib/db";
 
+export const dynamic = 'force-dynamic';
+
 async function getCalls(): Promise<Call[]> {
   try {
     const calls = await db.call.findMany({
