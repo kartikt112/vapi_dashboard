@@ -8,6 +8,7 @@ export interface Call {
     endedReason?: string;
     transcript?: string;
     recordingUrl?: string;
+    stereoRecordingUrl?: string;
     summary?: string;
     duration?: number;
     cost?: number;
@@ -15,6 +16,7 @@ export interface Call {
         number: string;
         name?: string;
     };
+    metadata?: Record<string, any>;
     analysis?: {
         summary?: string;
         structuredData?: any;

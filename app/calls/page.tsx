@@ -85,10 +85,10 @@ export default function CallLogsPage() {
                                                     <Calendar className="h-3 w-3" />
                                                     {format(new Date(call.createdAt), 'MMM d, yyyy HH:mm')}
                                                 </div>
-                                                {call.duration > 0 && (
+                                                {(call.duration || 0) > 0 && (
                                                     <div className="flex items-center gap-1">
                                                         <Clock className="h-3 w-3" />
-                                                        {Math.floor(call.duration / 60)}m {Math.round(call.duration % 60)}s
+                                                        {Math.floor((call.duration || 0) / 60)}m {Math.round((call.duration || 0) % 60)}s
                                                     </div>
                                                 )}
                                                 <div className="flex items-center gap-1">
