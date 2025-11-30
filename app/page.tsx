@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { Overview } from "@/components/dashboard/overview";
 import { CallsTable } from "@/components/dashboard/calls-table";
 import { calculateStats } from "@/lib/analytics";
@@ -39,7 +40,8 @@ async function syncData() {
   const apiKey = process.env.VAPI_API_KEY;
 
   if (!apiKey) {
-    return { error: 'VAPI_API_KEY not configured' };
+    console.error('VAPI_API_KEY not configured');
+    return;
   }
 
   try {
@@ -117,17 +119,10 @@ async function syncData() {
       })
     );
 
-    return {
-      success: true,
-      count: calls.length,
-      message: `Synced ${calls.length} calls to database`
-    };
+    console.log(`Synced ${calls.length} calls to database`);
+    revalidatePath('/');
   } catch (error) {
     console.error('Error syncing calls:', error);
-    return {
-      error: 'Failed to sync calls',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    };
   }
 }
 
